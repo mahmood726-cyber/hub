@@ -154,6 +154,17 @@ window.HTML_APPS_PROJECTS = [
     tags: ["living-review", "meta-analysis", "wasm"]
   },
   {
+    name: "NMA Core",
+    folder: "C:\\HTML apps\\nma",
+    path: "./nma/index.html",
+    collection: "new",
+    mode: "file",
+    category: "Network Meta-Analysis",
+    summary: "Lightweight network meta-analysis: contrast-based pooling, network graph, SUCRA ranking, league table.",
+    note: "Single-file app with its own pytest suite under nma/tests.",
+    tags: ["nma", "sucra", "league-table"]
+  },
+  {
     name: "NMA Pro v8",
     folder: "C:\\HTML apps\\nma-pro-v2",
     path: "./nma-pro-v2/nma-pro-v8.0.html",

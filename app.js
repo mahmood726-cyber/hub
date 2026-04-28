@@ -28,7 +28,7 @@
   }
 
   function createFilterButtons() {
-    filterBar.innerHTML = "";
+    filterBar.replaceChildren();
     getFilters().forEach((label) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -72,8 +72,20 @@
     return haystack.includes(query);
   }
 
+  const isHttp = /^https?:$/.test(window.location.protocol);
+
   function resolveHref(path) {
     return new URL(path, window.location.href).toString();
+  }
+
+  function parentPath(path) {
+    const trimmed = path.replace(/[?#].*$/, "");
+    const idx = trimmed.lastIndexOf("/");
+    return idx >= 0 ? trimmed.slice(0, idx + 1) : trimmed;
+  }
+
+  function isCrossDrive(project) {
+    return typeof project.path === "string" && project.path.startsWith("../");
   }
 
   function makeTag(text) {
@@ -83,56 +95,85 @@
     return span;
   }
 
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
   function renderCard(project) {
-    const article = document.createElement("article");
-    article.className = "project-card";
+    const locked = isHttp && isCrossDrive(project);
+    const needsServer = project.mode === "server";
+    const launchable = !locked && !needsServer;
 
-    const statusClass = project.collection === "new"
-      ? "pill pill-new"
-      : project.mode === "server"
-        ? "pill pill-server"
-        : "pill pill-ready";
+    let statusClass;
+    let statusLabel;
+    if (locked) {
+      statusClass = "pill pill-locked";
+      statusLabel = "file:// only";
+    } else if (project.collection === "new") {
+      statusClass = "pill pill-new";
+      statusLabel = "New App";
+    } else if (needsServer) {
+      statusClass = "pill pill-server";
+      statusLabel = "Needs HTTP";
+    } else {
+      statusClass = "pill pill-ready";
+      statusLabel = "Launchable";
+    }
 
-    const statusLabel = project.collection === "new"
-      ? "New App"
-      : project.mode === "server"
-        ? "Needs HTTP"
-        : "Launchable";
+    const article = el("article", "project-card");
 
-    article.innerHTML = `
-      <div class="project-head">
-        <div>
-          <h3>${project.name}</h3>
-          <div class="project-folder">${project.folder}</div>
-        </div>
-        <span class="${statusClass}">${statusLabel}</span>
-      </div>
-      <p class="project-summary">${project.summary}</p>
-      <div class="meta-row"></div>
-      <div class="project-note">${project.note}</div>
-      <div class="project-actions"></div>
-    `;
+    const head = el("div", "project-head");
+    const headLeft = document.createElement("div");
+    headLeft.appendChild(el("h3", null, project.name));
+    headLeft.appendChild(el("div", "project-folder", project.folder));
+    head.appendChild(headLeft);
+    head.appendChild(el("span", statusClass, statusLabel));
+    article.appendChild(head);
 
-    const tagRow = article.querySelector(".meta-row");
+    article.appendChild(el("p", "project-summary", project.summary));
+
+    const tagRow = el("div", "meta-row");
     [project.category].concat(project.tags || []).slice(0, 4).forEach((tag) => {
       tagRow.appendChild(makeTag(tag));
     });
+    article.appendChild(tagRow);
 
-    const actions = article.querySelector(".project-actions");
-    const launch = document.createElement(project.mode === "server" ? "span" : "a");
-    launch.className = `project-link project-link-primary${project.mode === "server" ? " project-link-disabled" : ""}`;
-    launch.textContent = project.mode === "server" ? "Use Local Server" : "Open App";
-    if (project.mode !== "server") {
-      launch.href = resolveHref(project.path);
+    const noteText = locked
+      ? `${project.note} Open the hub from file:// to launch this app, or use Open Containing Folder.`
+      : project.note;
+    article.appendChild(el("div", "project-note", noteText));
+
+    const actions = el("div", "project-actions");
+
+    let primary;
+    if (launchable) {
+      primary = el("a", "project-link project-link-primary", "Open App");
+      primary.href = resolveHref(project.path);
+    } else {
+      primary = el("span", "project-link project-link-primary project-link-disabled",
+        needsServer ? "Use Local Server" : "Open App");
+      primary.setAttribute("aria-disabled", "true");
+      primary.title = needsServer
+        ? "Run serve-html-apps.ps1 -Open and reload the hub over http://localhost:8080"
+        : "This app lives outside C:\\HTML apps and can only be launched when the hub is opened from the file system.";
     }
-    actions.appendChild(launch);
+    actions.appendChild(primary);
 
-    const copyLink = document.createElement("a");
-    copyLink.className = "project-link project-link-secondary";
-    copyLink.textContent = "Open Folder Target";
-    copyLink.href = resolveHref(project.path);
-    actions.appendChild(copyLink);
+    const folderHref = resolveHref(parentPath(project.path));
+    let secondary;
+    if (locked) {
+      secondary = el("span", "project-link project-link-secondary project-link-disabled", "Open Containing Folder");
+      secondary.setAttribute("aria-disabled", "true");
+    } else {
+      secondary = el("a", "project-link project-link-secondary", "Open Containing Folder");
+      secondary.href = folderHref;
+    }
+    actions.appendChild(secondary);
 
+    article.appendChild(actions);
     return article;
   }
 
@@ -140,7 +181,7 @@
     const query = (searchInput.value || "").trim().toLowerCase();
     const visible = projects.filter((project) => matchesFilter(project) && matchesSearch(project, query));
 
-    grid.innerHTML = "";
+    grid.replaceChildren();
 
     if (!visible.length) {
       const empty = document.createElement("div");
