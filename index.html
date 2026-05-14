@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Launch hub for local HTML apps and evidence-synthesis dashboards.">
+  <title>HTML Apps Hub</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero" aria-labelledby="hub-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Local app launcher</p>
+        <h1 id="hub-title">HTML Apps Hub</h1>
+        <p class="hero-text">Search and open the browser apps, dashboards, and synthesis tools kept in this workspace.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#project-grid">Browse apps</a>
+          <a class="button button-secondary" href="e156-submission/index.html">E156 package</a>
+        </div>
+      </div>
+      <aside class="hero-panel" aria-label="Portfolio summary">
+        <div class="metric-grid">
+          <div class="metric-card">
+            <span class="metric-label">Launchable</span>
+            <strong id="launchable-count" class="metric-value">0</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Needs server</span>
+            <strong id="server-count" class="metric-value">0</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">New apps</span>
+            <strong id="new-count" class="metric-value">0</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Categories</span>
+            <strong id="category-count" class="metric-value">0</strong>
+          </div>
+        </div>
+        <div class="tip-card">
+          <span class="tip-title">Launch mode</span>
+          <p class="tip-copy">Open this page from the file system for cross-folder apps, or serve the folder locally for HTTP-only tools.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="controls-panel" aria-label="Search and filters">
+      <div class="controls-row">
+        <label class="search-field" for="search-input">
+          Search apps
+          <input id="search-input" type="search" autocomplete="off" placeholder="Search by name, folder, category, or tag">
+        </label>
+        <p id="results-summary" class="results-summary" aria-live="polite">0 projects shown</p>
+      </div>
+      <div id="filter-bar" class="filter-bar" aria-label="Project filters"></div>
+    </section>
+
+    <section id="project-grid" class="project-grid" aria-label="HTML apps"></section>
+  </main>
+
+  <script src="projects.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

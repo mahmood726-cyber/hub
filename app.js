@@ -74,8 +74,21 @@
 
   const isHttp = /^https?:$/.test(window.location.protocol);
 
+  function getLaunchBase() {
+    if (window.location.protocol !== "file:") {
+      return window.location.href;
+    }
+
+    const normalizedPath = window.location.pathname.replace(/\/+$/, "");
+    return normalizedPath.endsWith("/hub/index.html")
+      ? new URL("../", window.location.href).toString()
+      : window.location.href;
+  }
+
+  const launchBase = getLaunchBase();
+
   function resolveHref(path) {
-    return new URL(path, window.location.href).toString();
+    return new URL(path, launchBase).toString();
   }
 
   function parentPath(path) {
